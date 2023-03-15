@@ -1,5 +1,8 @@
 namespace UtmBuilder.Core.ValueObjects;
-public class ValueObject
+/// <summary>
+/// Abstract Class Value Object
+/// </summary>
+public abstract class ValueObject
 {
 
 }

@@ -26,10 +26,10 @@ Executando um **dotnet build**, todos os projetos referenciados na solução sã
 
 ## Organizando as Entidades
 
-Em todo projeto, comece pelo começo! É hora da modelagem, organizando o código separando as classes em Entidades.
+Em todo projeto, comece pelo começo! É hora da modelagem, organize o código e separe as classes em Entidades.
 
 ```csharp
-// Classe básica do monitor de trafego. Somente usando propriedades de tipos primitivos.
+// Classe básica do monitor de trafego. Aqui usamos as propriedades de tipos primitivos.
 // Vamos melhorar, criando Value Objects para essas propriedades, evoluindo o código.
 public class Utm
 {
@@ -43,7 +43,7 @@ public class Utm
 }
 ```
 
-Os ValueObjects são os tipos complexos de propriedades. Com eles, podemos organizar os comportamentos dos tipos, melhorando as validações e centralizando as regras de negócio no código.
+Os **ValueObjects** são os tipos complexos de propriedades. Com eles, podemos organizar os comportamentos dos tipos, melhorando as validações e centralizando as regras de negócio no código.
 
 ```csharp
 // Todas aquelas propriedades fazem mais sentido serem parte de uma campanha né 😄
@@ -66,21 +66,21 @@ As versões a partir do .NET6 ficam alertando sobre as propriedades serem nulas.
 ```csharp
 public class Utm
 {
-    // Inicializando a propriedade (new()) com uma nova instância do objeto do mesmo tipo.
+    // 1 - Inicializando a propriedade (new()) com uma nova instância do objeto do mesmo tipo.
     public Guid Id { get; private set; } = new();
 
-    // Caso seja permitido no contexto, atribuir a propriedade para aceitar
+    // 2 - Caso seja permitido no contexto, atribuir a propriedade para aceitar
     // valor nulo com o interrogação (?).
     public Url? Url { get; private set; }
 
-    // Atribuir a propriedade com o null not (null!). Assim indicamos que futuramente
+    // 3 - Atribuir a propriedade com o null not (null!). Assim indicamos que futuramente
     // essa propriedade receberá um valor, pois no momento não há como passar um valor.
     public Campaign Campaign { get; private set; } = null!;
 }
 
 public class Utm
 {
-    // Criar um método construtor passando os valores para as propriedades via parâmetro.
+    // 4- Criar um método construtor passando os valores para as propriedades via parâmetro.
     public Utm(Url url, Campaign campaign)
     {
         Url = url;
@@ -101,6 +101,7 @@ Os private set blindam os ValueObjects de alterações fora da classe. Dessa for
 ```csharp
 public class Url : ValueObject
 {
+    // Só posso passar o valor ao criar um novo objeto Url
     public Url(string address)
     {
         Address = address;
@@ -108,6 +109,7 @@ public class Url : ValueObject
 
     public string Address { get; private set; }
 
+    // Caso precise alterar o valor, é permitido apenas usando o método UpdateUrl
     void UpdateUrl()
     {
         Address = "https://enredeco.atualizado.por.um.metodo";
@@ -152,9 +154,9 @@ public class Campaign : ValueObject
     public string Medium { get; private set; } = null!;
     public string Name { get; private set; } = null!;
 
-    public string? Id { get; private set; } = null!;
-    public string? Term { get; private set; } = null!;
-    public string? Content { get; private set; } = null!;
+    public string? Id { get; private set; }
+    public string? Term { get; private set; }
+    public string? Content { get; private set; }
 }
 ```
 
@@ -204,7 +206,7 @@ Exemplo ao passar o mouse sobre o parâmetro.
 Agora com as entidades definidas é hora de fazer as validações com expressões regulares.
 
 ```csharp
-// constante privada, ninguém precisa acessar esse valor imutável.
+// Constante privada, ninguém precisa acessar esse valor imutável.
 private const string UrlRegexPattern =
     @"^
         (http|https):(\/\/www\.|\/\/www\.|\/\/|\/\/)
@@ -252,7 +254,7 @@ Também requer um TLD - Top-Level Domain de duas a cinco letras minúsculas "`.c
 
 `\/\/127\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.`
 `([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.`
-`([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])` -> opção que começa com o endereço IP "127." seguido de um número entre 0 e 255 (representado pela expressão regular dentro dos colchetes), seguido de um ponto e outro número de 0 a 255, e mais uma sequencia entre 0 a 255 (ex: `127.0.0.1`).
+`([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])` -> opção que começa com o endereço IP "127." seguido de um número entre 0 e 255 (representado pela expressão regular dentro dos colchetes), seguido de um ponto e outro número de 0 a 255, e mais uma sequência entre 0 a 255 (ex: `127.0.0.1`).
 
 `(:[0-9]{1,5})?` -> indica que a URL pode ter uma porta (separada por dois pontos) seguida de um número de 1 a 5 dígitos. O ponto de interrogação no final torna essa parte opcional (ex: endereco-url`:80` ou endereco-url).
 
@@ -276,9 +278,9 @@ public Url(string address)
 
 O problema de trabalhar com exceções assim é conseguir rastrear as informações, que muitas vezes são confundidas com exceções lançadas pelo próprio framework. Um debug fica muito custoso e complexo.
 
-Para melhorar esse cenário, crie um classe InvalidUrlException que herde de Exception.
+Para melhorar esse cenário, crie um classe I**InvalidUrlException** que herde de **Exception**.
 
-Temos sempre que tratar as exceções da mais específica para mais genérica.
+Temos sempre que tratar as exceções da forma mais específica para mais genérica.
 
 ```csharp
 public class InvalidUrlException : Exception
@@ -287,7 +289,7 @@ public class InvalidUrlException : Exception
     private const string UrlRegexPattern = ...
 
     public InvalidUrlException(string message = DefaultErrorMessage)
-    : base(message) // Herda a propriedade de mensagem padrão
+    : base(message) // Chama o construtor pai (Exception), passando a mensagem como parâmetro
     {
 
     }
@@ -304,7 +306,7 @@ public class InvalidUrlException : Exception
 }
 ```
 
-Agora a validação está concentrada de uma forma mais organizada e na classe Url precisamos apenas lançar exceções caso o endereço seja inválido
+Agora a validação está concentrada de uma forma mais organizada. Na classe Url, precisamos apenas lançar exceções caso o endereço seja inválido.
 
 ```csharp
 ...
@@ -319,7 +321,7 @@ Agora a validação está concentrada de uma forma mais organizada e na classe U
 
 Recurso novo do .NET7 que gera código otimizado durante a compilação. A IDE faz a sugestão para substituir o código.
 
-Obs: Essa sugestão pode estar somente disponível no Visual Studio ou Rider.
+Obs: Essa sugestão pode estar disponível apenas em IDE's como Visual Studio e Rider.
 
 ![Sugestão do Visual Studio](UtmBuilder.Core/Assets/images/source-code-generator.png)
 
@@ -374,7 +376,7 @@ var str = $"{Url.Address}?utm_source={Campaign.Source}";
 return $"{Url.Address}?{string.Join("&", segments)}";
 ```
 
-Para fazer testes de qual forma tem melhor performance, pode ser usado o pacote [Benchmark.Net](https://github.com/dotnet/BenchmarkDotNet) e simular os testes conforme esse video do [Balta](https://tinyurl.com/bench-dot-net)
+Para fazer testes de qual forma tem melhor performance, pode ser usado o pacote [Benchmark.Net](https://github.com/dotnet/BenchmarkDotNet) e simular os testes conforme esse video do [Balta](https://tinyurl.com/bench-dot-net).
 
 ### Métodos de extensão
 
@@ -404,14 +406,13 @@ Ao invés de criar uma série de condicionais repetitivas para avaliar os segmen
 ```csharp
 public static class ListExtensions
 {
-    // Adicionado this na frente do List. Dessa forma é representando que esse método
+    // Adicionado this na frente do List. Dessa forma representamos que esse método
     // é um método de extensão da classe List
     public static void AddIfNotNull(this List<string> list,
         string key,
         string? value)
     {
-        // Se o valor não for nulo ou vazio, adiciona um novo item na lista
-        // passando a chave e o valor
+        // Somente adiciona um novo item a lista se o value não for nulo ou vazio.
         if (!string.IsNullOrEmpty(value))
             list.Add($"{key}={value}");
     }
@@ -436,7 +437,7 @@ Ainda sim, é preferível trabalhar com **notificações**, deixando o código m
 
 ## Operador implícito
 
-Os implicit operators ajudam nas conversões de tipo de objetos. Como informado na [Sobrescrita de método](#sobrescrita-de-método), o ToString() é um método disponível para todos os novos objetos.
+Os **implicit operators** ajudam nas conversões de tipo de objetos. Como informado na [Sobrescrita de método](#sobrescrita-de-método), o ToString() é um método disponível para todos os novos objetos.
 
 Para não haver a necessidade de ficar invocando o mesmo ao instanciar um novo Utm, podemos criar:
 
@@ -444,7 +445,7 @@ Para não haver a necessidade de ficar invocando o mesmo ao instanciar um novo U
 public static implicit operator string(Utm utm) => utm.ToString();
 ```
 
-dessa forma, sempre que o objeto for atribuído a alguma variável, não é necessário chamar o método para conversão. A mesma é feita implicitamente:
+Dessa forma, sempre que o objeto for atribuído a alguma variável, não é necessário chamar o método para conversão. A mesma é feita implicitamente:
 
 ```csharp
 //class Test
@@ -455,21 +456,21 @@ var utm = new Utm(Url, Campaign);
 string resultado = utm;
 ```
 
-Agora conversão de uma string para Utm
+Agora conversão de uma string para Utm:
 
 ```csharp
 public static implicit operator Utm(string link)
 {
     // Ex url: https://plataforma.io/pagina-promo?utm_source=YouTube&utm_campaign=segments
 
-    // Validação rápida em caso de valor nulo
+    // Validação rápida no caso do link vir como nulo ou vazio.
     if (string.IsNullOrEmpty(link))
             throw new InvalidUrlException();
 
-    // Cria um objeto do tipo url recebendo um link
+    // Cria um objeto do tipo url recebendo um link.
     var url = new Url(link);
 
-    // cria um array de strings, separando a url a cada interrogação (?)
+    // cria um array de strings, separando a url a cada interrogação (?).
     var segments = url.Address.Split("?");
 
     // Se o tamanho do array for 1, não haverá segmentos para recuperar.
@@ -477,14 +478,14 @@ public static implicit operator Utm(string link)
         throw new InvalidUrlException("Nenhum segmento foi fornecido");
 
     // Cria um array de strings com o nome de pars (parâmetros).
-    // Os segmentos são contados a partir da 2ª posição (1). Sempre iniciamos a contagem em 0, 1, 2...
-    // As quebras são feitas a cada "&" (E comercial).
+    // Os segmentos são contados a partir da 2ª posição (1). Lembre que a contagem inicia em 0, 1, 2...
+    // As quebras são feitas a cada "&" ("E" comercial).
     var pars = segments[1].Split("&");
 
     // Retorna uma string utilizando LINQ.
     // Procura nos parâmetros ONDE o elemento COMEÇA COM o segmento pesquisado,
     // trazendo o PRIMEIRO valor encontrado. Depois DIVIDE o valor a cada separador igual (=)
-    // e retorna o valor da 2ª posição do array(1).
+    // e retorna o valor da 2ª posição do array (1).
     var source = pars.Where(x => x.StartsWith("utm_source")).FirstOrDefault("").Split("=")[1];
     var medium = pars.Where(x => x.StartsWith("utm_medium")).FirstOrDefault("").Split("=")[1];
     var name = pars.Where(x => x.StartsWith("utm_campaign")).FirstOrDefault("").Split("=")[1];
@@ -493,7 +494,7 @@ public static implicit operator Utm(string link)
     var content = pars.Where(x => x.StartsWith("utm_content")).FirstOrDefault("").Split("=")[1];
 
     // Cria um novo objeto Utm, passando um novo objeto Url com a 1ª parte do link
-    // e passando um novo objeto do tipo Campanha, com os valores dos segmentos que compõem
+    // e passa um novo objeto do tipo Campanha, com os valores dos segmentos que compõem
     // a 2ª parte da Url.
     var utm = new Utm(
     new Url(segments[0]),
@@ -515,17 +516,17 @@ string utm = (Utm)url;
 
 ## Testes de Unidade
 
-Obs: Caso esteja usando o VSCODE, habilite a criação dos arquivos de debug, que ficam na pasta .vscode
+Obs: Caso esteja usando o **VSCode**, habilite a criação dos arquivos de debug, que ficam na pasta **.vscode**
 
-Crie um projeto de testes seguindo a convenção de nomenclatura **dotnet new mstest -o UtmBuilder.Core.Tests**
+1. Crie um projeto de testes seguindo a convenção de nomenclatura **dotnet new mstest -o UtmBuilder.Core.Tests**
 
-Adicione o projeto de testes a solução **dotnet sln add .\\UtmBuilder.Core.Tests\\**
+1. Adicione o projeto de testes a solução **dotnet sln add .\\UtmBuilder.Core.Tests\\**
 
-Acesse o projeto de testes e faça referência ao projeto core **dotnet add reference ..\\UtmBuilder.Core\\**
+1. Acesse o projeto de testes e faça referência ao projeto core **dotnet add reference ..\\UtmBuilder.Core\\**
 
 ### Organizando os testes
 
-Avalie suas classes no projeto core. Cada vez que houver uma condicional na classe(if, método de verificação, switch/case, etc) teremos 2 casos de testes a serem realizados: falha e sucesso.
+Avalie suas classes no projeto Core. Cada vez que houver uma condicional na classe (if, método de verificação, switch/case, etc.) teremos 2 casos de testes a serem realizados: **falha** e **sucesso**.
 
 ```csharp
 // Estrutura básica de uma classe de teste
@@ -542,11 +543,11 @@ public class UrlTests
 }
 ```
 
-Modele todos os testes para falhar, depois faça eles passarem e refatore para os casos serem mais próximos da realidade.
+Modele todos os testes para **falhar**, depois faça eles **passarem** e **refatore** para os casos serem mais próximos da realidade. Essa é metodologia de mercado 🔴Red, 🟢Green, 💻Refactor.
 
 ### Testando por exceções
 
-Podemos testar dessa forma com bloco try/catch para avaliação.
+Podemos testar dessa forma com bloco **try/catch** para avaliação.
 
 ```csharp
 [TestMethod]
@@ -556,10 +557,12 @@ public void Deve_retornar_excecao_quando_a_url_for_invalida()
     try
     {
         var url = new Url("123qwe");
+        // Assegura que o teste irá falhar
         Assert.Fail();
     }
     catch (InvalidUrlException e)
     {
+        // Assegura que o teste irá passar
         Assert.IsTrue(true);
     }
 }
@@ -603,14 +606,15 @@ Outra forma de testar a mesma condição com diversos parâmetros é essa.
 ```csharp
 [TestMethod]
 [TestCategory("Teste de URL")]
-// A cada DataRow será executado um caso de teste, com a condição se é verdadeiro ou falso
+
+// A cada DataRow será executado um caso de teste, com a condição se é verdadeiro ou falso.
 [DataRow(" ", true)]
 [DataRow("http", true)]
 [DataRow("plataforma", true)]
 [DataRow("https://plataforma.com", false)] // Somente esse teste não espera exceção, com uma URL válida
 public void Teste_Url(string link, bool expectException)
 {
-    // Se a condição é true, é pra acontecer uma exceção.
+    // Se a condição é verdadeira, é pra acontecer uma exceção.
     if (expectException)
     {
         try
@@ -625,6 +629,7 @@ public void Teste_Url(string link, bool expectException)
     }
     else
     {
+        // Se a condição for falsa, não acontece a exceção e o teste deve passar.
         new Url(link);
         Assert.IsTrue(true);
     }
@@ -633,7 +638,7 @@ public void Teste_Url(string link, bool expectException)
 
 ### Catch When
 
-Caso necessário testar somente um condição no bloco try/catch, pode ser usado o comando when com base na comparação por mensagem
+Caso necessário testar somente uma parte da condição no bloco **try/catch**, pode ser usado o comando **when** com base na comparação por mensagem.
 
 ```csharp
 // Trecho da classe de Testes da Campanha
@@ -655,7 +660,7 @@ if (expectException)
 
 ### Testando o Utm
 
-para finalizar, testamos a criação de um objeto Utm
+Para finalizar, testamos a criação de um objeto **Utm**.
 
 ```csharp
 [TestClass]

@@ -99,17 +99,6 @@ public class Utm
         segments.AddIfNotNull("utm_term", Campaign.Term);
         segments.AddIfNotNull("utm_content", Campaign.Content);
 
-        // Url de exemplo https://plataforma.io/pagina-promo?utm_source=YouTube&utm_campaign=segments
         return $"{Url.Address}?{string.Join("&", segments)}";
-    }
-
-    public class Teste
-    {
-        public void Create()
-        {
-            var url = "https://balta.io/?utm_source&utm_medium=med&utm_campaign=nme&utm_id=id&utm_term=ter&utm_content=ctn;";
-
-            string utm = (Utm)url;
-        }
     }
 }

@@ -34,11 +34,6 @@ public class Campaign : ValueObject
     }
 
     /// <summary>
-    /// The ads campaign id.
-    /// </summary>
-    public string? Id { get; }
-
-    /// <summary>
     /// The referrer (e.g. google, newsletter)
     /// </summary>
     public string Source { get; }
@@ -52,6 +47,11 @@ public class Campaign : ValueObject
     /// Product, promo code, or slogan (e.g. spring_sale) One of campaign name or campaign id are required.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// The ads campaign id.
+    /// </summary>
+    public string? Id { get; }
 
     /// <summary>
     /// Identify the paid keywords
